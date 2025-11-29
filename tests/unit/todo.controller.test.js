@@ -2,8 +2,13 @@ const TodoController = require('../../controllers/todo.controller');
 const TodoModel = require('../../model/todo.model');
 const httpMocks = require('node-mocks-http');
 const newTodo = require('../mock-data/new-todo.json');
+const allTodos = require('../mock-data/all-todo.json');
+const { all } = require('../../app');
 
 TodoModel.create = jest.fn();
+TodoModel.find = jest.fn();
+
+
 let req, res, next;
 
 beforeEach(() => {
@@ -11,6 +16,30 @@ beforeEach(() => {
     res = httpMocks.createResponse();
     next = jest.fn();
 });
+
+// ...existing code...
+describe("TodoController.getTodos", () => {
+    TodoModel.find.mockReturnValue(allTodos);
+    beforeEach(() => {
+        // mock as resolved value because controller awaits the call
+        TodoModel.find.mockResolvedValue(allTodos);
+    });
+    it("should be a function", () => {
+        expect(typeof TodoController.getTodos).toBe("function");
+    });
+    it("should call TodoModel.find", async () => {
+        await TodoController.getTodos(req, res, next);
+        expect(TodoModel.find).toHaveBeenCalledWith({});
+    });
+    it("should return 200 response code", async () => {
+        await TodoController.getTodos(req, res, next);
+        expect(res.statusCode).toBe(200);
+        expect(res._isEndCalled()).toBeTruthy();
+        expect(res._getJSONData()).toStrictEqual(allTodos);
+    });
+});
+
+
 
 describe("TodoController.createTodo", () => {
 
