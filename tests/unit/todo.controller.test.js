@@ -23,4 +23,10 @@ describe("TodoController.createTodo", () => {
         // use the correct Jest matcher
         expect(TodoModel.create).toHaveBeenCalled();
     });
+    it("should return 201 status code", () => {
+        req.body = newTodo;
+        TodoController.createTodo(req,res,next);
+        expect(res.statusCode).toBe(201);
+        expect(res._isEndCalled()).toBeTruthy();
+    });
 });
