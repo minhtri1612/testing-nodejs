@@ -37,6 +37,13 @@ describe("TodoController.getTodos", () => {
         expect(res._isEndCalled()).toBeTruthy();
         expect(res._getJSONData()).toStrictEqual(allTodos);
     });
+    it("should handle errors in getTodos", async () => {
+        const errorMessage = { message: "Error finding todos" };
+        const rejectedPromise = Promise.reject(errorMessage);
+        TodoModel.find.mockReturnValue(rejectedPromise);
+        await TodoController.getTodos(req, res, next);
+        expect(next).toHaveBeenCalledWith(errorMessage);
+    });
 });
 
 
