@@ -37,5 +37,7 @@ describe(endpointUrl, () => {
 
         expect(response.statusCode).toBe(500);
         expect(response.body).toBeDefined();
+        // match the error thrown by the mocked model
+        expect(response.body).toStrictEqual({ message: "DB failure" });
     });
 });
