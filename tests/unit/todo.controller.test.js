@@ -28,7 +28,7 @@ describe("TodoController.createTodo", () => {
     it("should return 201 status code", async () => {
         req.body = newTodo;
         // make the model return a resolved value so controller can finish
-        TodoModel.create.mockResolvedValue(newTodo);
+        await TodoModel.create.mockResolvedValue(newTodo);
         await TodoController.createTodo(req, res, next);
         expect(res.statusCode).toBe(201);
         expect(res._isEndCalled()).toBeTruthy();
