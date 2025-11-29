@@ -48,4 +48,20 @@ describe(endpointUrl, () => {
       });
     }
   );
+  it("PUT " + endpointUrl, async () => {
+    const testData = { title: "Make integration test for PUT", done: true };
+    const res = await request(app)
+      .put(endpointUrl + newTodoId)
+      .send(testData);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.title).toBe(testData.title);
+    expect(res.body.done).toBe(testData.done);
+  });
+  it("should return 404 on PUT " + endpointUrl, async () => {
+    const testData = { title: "Make integration test for PUT", done: true };
+    const res = await request(app)
+      .put(endpointUrl + nonExistingTodoId)
+      .send(testData);
+    expect(res.statusCode).toBe(404);
+  });  
 });

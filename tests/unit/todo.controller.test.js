@@ -8,6 +8,7 @@ const { all } = require('../../app');
 TodoModel.create = jest.fn();
 TodoModel.find = jest.fn();
 TodoModel.findById = jest.fn();
+TodoModel.findByIdAndUpdate = jest.fn();
 
 
 
@@ -18,6 +19,40 @@ beforeEach(() => {
     res = httpMocks.createResponse();
     next = jest.fn();
 });
+
+
+describe("TodoController.updateTodo", () => {
+  it("should have a updateTodo function", () => {
+    expect(typeof TodoController.updateTodo).toBe("function");
+  });
+  it("should update with TodoModel.findByIdAndUpdate", async () => {
+    req.params.todoId = todoId;
+    req.body = newTodo;
+    await TodoController.updateTodo(req, res, next);
+
+    expect(TodoModel.findByIdAndUpdate).toHaveBeenCalledWith(todoId, newTodo, {
+      new: true,
+      useFindAndModify: false
+    });
+  });
+  it("should return a response with json data and http code 200", async () => {
+    req.params.todoId = todoId;
+    req.body = newTodo;
+    TodoModel.findByIdAndUpdate.mockReturnValue(newTodo);
+    await TodoController.updateTodo(req, res, next);
+    expect(res._isEndCalled()).toBeTruthy();
+    expect(res.statusCode).toBe(200);
+    expect(res._getJSONData()).toStrictEqual(newTodo);
+  });
+  it("should handle errors", async () => {
+    const errorMessage = { message: "Error" };
+    const rejectedPromise = Promise.reject(errorMessage);
+    TodoModel.findByIdAndUpdate.mockReturnValue(rejectedPromise);
+    await TodoController.updateTodo(req, res, next);
+    expect(next).toHaveBeenCalledWith(errorMessage);
+  });
+});
+
 
 
 
