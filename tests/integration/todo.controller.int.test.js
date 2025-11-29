@@ -1,47 +1,51 @@
 const request = require("supertest");
-const newTodo = require("../mock-data/new-todo.json");
-
-// Mock the TodoModel before loading the app/routes so controller uses the mock
-jest.mock("../../model/todo.model");
-const TodoModel = require("../../model/todo.model");
 const app = require("../../app");
-const Test = require("supertest/lib/test");
+const newTodo = require("../mock-data/new-todo.json");
 
 const endpointUrl = "/todos/";
 
+let firstTodo;
+
 describe(endpointUrl, () => {
-    beforeEach(() => {
-        // ensure GET /todos returns an array
-        TodoModel.find.mockResolvedValue([newTodo]);
-    });
+  test("GET " + endpointUrl, async () => {
+    const response = await request(app).get(endpointUrl);
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-    
-    // --- START FIX: Removed duplicate test line and moved the closing brace ---
-    test("GET " + endpointUrl, async () => {
-         const response = await request(app).get(endpointUrl);
- 
-         expect(response.statusCode).toBe(200);
-         expect(Array.isArray(response.body)).toBeTruthy();
-         expect(response.body[0].title).toBeDefined();
-         expect(response.body[0].done).toBeDefined();
- 
-     });
-    // --- END FIX ---
-
-    it("should return 500 if there is a server error " + endpointUrl, async () => {
-        // simulate model/database error
-        TodoModel.create.mockRejectedValue(new Error("DB failure"));
-
-        const response = await request(app)
-            .post(endpointUrl)
-            .send(newTodo);
-
-        expect(response.statusCode).toBe(500);
-        expect(response.body).toBeDefined();
-        // match the error thrown by the mocked model
-        expect(response.body).toStrictEqual({ message: "DB failure" });
-    });
+    expect(response.statusCode).toBe(200);
+    expect(Array.isArray(response.body)).toBeTruthy();
+    expect(response.body[0].title).toBeDefined();
+    expect(response.body[0].done).toBeDefined();
+    firstTodo = response.body[0];
+  });
+  test("GET by Id " + endpointUrl + ":todoId", async () => {
+    const response = await request(app).get(endpointUrl + firstTodo._id);
+    expect(response.statusCode).toBe(200);
+    expect(response.body.title).toBe(firstTodo.title);
+    expect(response.body.done).toBe(firstTodo.done);
+  });
+  test("GET todoby id doesn't exist" + endpointUrl + ":todoId", async () => {
+    const response = await request(app).get(
+      endpointUrl + "5d5fff416bef3c07ecf11f77"
+    );
+    expect(response.statusCode).toBe(404);
+  });
+  it("POST " + endpointUrl, async () => {
+    const response = await request(app)
+      .post(endpointUrl)
+      .send(newTodo);
+    expect(response.statusCode).toBe(201);
+    expect(response.body.title).toBe(newTodo.title);
+    expect(response.body.done).toBe(newTodo.done);
+  });
+  it(
+    "should return error 500 on malformed data with POST" + endpointUrl,
+    async () => {
+      const response = await request(app)
+        .post(endpointUrl)
+        .send({ title: "Missing done property" });
+      expect(response.statusCode).toBe(500);
+      expect(response.body).toStrictEqual({
+        message: "Todo validation failed: done: Path `done` is required."
+      });
+    }
+  );
 });
