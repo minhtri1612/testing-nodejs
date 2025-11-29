@@ -64,4 +64,18 @@ describe(endpointUrl, () => {
       .send(testData);
     expect(res.statusCode).toBe(404);
   });  
+  test("HTTP DELETE", async () => {
+    const res = await request(app)
+      .delete(endpointUrl + newTodoId)
+      .send();
+    expect(res.statusCode).toBe(200);
+    expect(res.body.title).toBe(testData.title);
+    expect(res.body.done).toBe(testData.done);
+  });
+  test("HTTP DELETE 404", async () => {
+    const res = await request(app)
+      .delete(endpointUrl + nonExistingTodoId)
+      .send();
+    expect(res.statusCode).toBe(404);
+  });
 });
