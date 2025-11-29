@@ -13,14 +13,16 @@ beforeEach(() => {
 });
 
 describe("TodoController.createTodo", () => {
+
+    beforeEach(() => {
+        req.body = newTodo;
+    });
+
     it("should create a new todo item", async () => {
         expect(typeof TodoController.createTodo).toBe("function");
     });
     it("should call TodoModel.create with correct parameters", async () => {
-
-        req.body = newTodo;
         TodoController.createTodo(req,res,next);
-        // use the correct Jest matcher
         expect(TodoModel.create).toHaveBeenCalled();
     });
     it("should return 201 status code", () => {
@@ -28,5 +30,10 @@ describe("TodoController.createTodo", () => {
         TodoController.createTodo(req,res,next);
         expect(res.statusCode).toBe(201);
         expect(res._isEndCalled()).toBeTruthy();
+    });
+    it("should return json body", () => {
+        TodoModel.create.mockReturnValue(newTodo);
+        TodoController.createTodo(req,res,next);
+        expect(res._getJSONData()).toStrictEqual(newTodo);
     });
 });
