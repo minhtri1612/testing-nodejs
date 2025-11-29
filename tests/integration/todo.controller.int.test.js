@@ -9,6 +9,10 @@ const app = require("../../app");
 const endpointUrl = "/todos/";
 
 describe(endpointUrl, () => {
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
     it("POST " + endpointUrl, async () => {
         // Make the model create resolve quickly to avoid DB calls/timeouts
         TodoModel.create.mockResolvedValue(newTodo);
@@ -16,8 +20,22 @@ describe(endpointUrl, () => {
         const response = await request(app)
             .post(endpointUrl)
             .send(newTodo);
+
         expect(response.statusCode).toBe(201);
         expect(response.body.title).toBe(newTodo.title);
         expect(response.body.done).toBe(newTodo.done);
+        expect(TodoModel.create).toHaveBeenCalledWith(newTodo);
+    });
+
+    it("should return 500 if there is a server error " + endpointUrl, async () => {
+        // simulate model/database error
+        TodoModel.create.mockRejectedValue(new Error("DB failure"));
+
+        const response = await request(app)
+            .post(endpointUrl)
+            .send(newTodo);
+
+        expect(response.statusCode).toBe(500);
+        expect(response.body).toBeDefined();
     });
 });
